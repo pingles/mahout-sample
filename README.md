@@ -23,6 +23,7 @@ contains CSV records of: `userid,itemid,rating`.
 
 ## To Do:
 
+* Include ns of fns to make it easier to validate models
 * Build DataModel implementations that back onto Cassandra/MongoDB
 * Build part-distributed/pre-computed and part-live recommendation system
 

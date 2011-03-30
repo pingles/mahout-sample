@@ -3,8 +3,8 @@
            [java.util List]
            [org.apache.mahout.cf.taste.recommender RecommendedItem]
            [org.apache.mahout.cf.taste.impl.model.file FileDataModel]
-           [org.apache.mahout.cf.taste.impl.similarity LogLikelihoodSimilarity]
-           [org.apache.mahout.cf.taste.impl.neighborhood ThresholdUserNeighborhood]
+           [org.apache.mahout.cf.taste.impl.similarity EuclideanDistanceSimilarity PearsonCorrelationSimilarity LogLikelihoodSimilarity]
+           [org.apache.mahout.cf.taste.impl.neighborhood NearestNUserNeighborhood ThresholdUserNeighborhood]
            [org.apache.mahout.cf.taste.recommender UserBasedRecommender]
            [org.apache.mahout.cf.taste.impl.recommender GenericUserBasedRecommender GenericItemBasedRecommender]))
 
@@ -20,13 +20,13 @@
   "Creates a file based user-recommender"
   [file]
   (let [model (FileDataModel. file)
-        similarity (LogLikelihoodSimilarity. model)]
-    (GenericUserBasedRecommender. model (ThresholdUserNeighborhood. 0.5 similarity model) similarity)))
+        similarity (PearsonCorrelationSimilarity. model)]
+    (GenericUserBasedRecommender. model (NearestNUserNeighborhood. 5 similarity model) similarity)))
 
 (defn user-recommendations
   "Using recommender r, generates a sequence of n recommended item id's and their value."
   ([^UserBasedRecommender r u]
-     (recommendations r u 10))
+     (user-recommendations r u 10))
   ([^UserBasedRecommender r u n]
      (to-clojure (.recommend r u n))))
 
