@@ -8,7 +8,7 @@
            [org.apache.mahout.cf.taste.recommender Recommender ItemBasedRecommender UserBasedRecommender]
            [org.apache.mahout.cf.taste.impl.recommender GenericUserBasedRecommender GenericItemBasedRecommender]
            [org.apache.mahout.cf.taste.eval RecommenderEvaluator RecommenderBuilder]
-           [org.apache.mahout.cf.taste.impl.eval AverageAbsoluteDifferenceRecommenderEvaluator]))
+           [org.apache.mahout.cf.taste.impl.eval AverageAbsoluteDifferenceRecommenderEvaluator RMSRecommenderEvaluator]))
 
 (defprotocol ToClojure
   (to-clojure [x]))
@@ -60,10 +60,15 @@
   [^Recommender r u i]
   (.estimatePreference r u i))
 
+(def avg-diff-evaluator (AverageAbsoluteDifferenceRecommenderEvaluator. ))
+
+(def rms-evaluator (RMSRecommenderEvaluator. ))
+
 (defn evaluate
-  [r-fn model]
-  (let [b (proxy [RecommenderBuilder] []
-            (buildRecommender [data-model]
-                              (r-fn data-model)))
-        e (AverageAbsoluteDifferenceRecommenderEvaluator.)]
-    (.evaluate e b nil model 0.7 1.0)))
+  ([r-fn model]
+     (evaluate r-fn model avg-diff-evaluator))
+  ([r-fn model e]
+     (let [b (proxy [RecommenderBuilder] []
+               (buildRecommender [data-model]
+                                 (r-fn data-model)))]
+       (.evaluate e b nil model 0.7 1.0))))
