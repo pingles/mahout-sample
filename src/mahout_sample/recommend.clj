@@ -3,7 +3,7 @@
            [java.util List]
            [org.apache.mahout.cf.taste.recommender RecommendedItem]
            [org.apache.mahout.cf.taste.impl.model.file FileDataModel]
-           [org.apache.mahout.cf.taste.impl.similarity EuclideanDistanceSimilarity PearsonCorrelationSimilarity LogLikelihoodSimilarity]
+           [org.apache.mahout.cf.taste.impl.similarity EuclideanDistanceSimilarity PearsonCorrelationSimilarity LogLikelihoodSimilarity TanimotoCoefficientSimilarity]
            [org.apache.mahout.cf.taste.impl.neighborhood NearestNUserNeighborhood ThresholdUserNeighborhood]
            [org.apache.mahout.cf.taste.recommender Recommender ItemBasedRecommender UserBasedRecommender]
            [org.apache.mahout.cf.taste.impl.recommender GenericUserBasedRecommender GenericItemBasedRecommender]
@@ -22,6 +22,14 @@
   [path]
   (FileDataModel. (File. path)))
 
+(defn log-likelihood
+  [m]
+  (LogLikelihoodSimilarity. m))
+
+(defn tanimoto
+  [m]
+  (TanimotoCoefficientSimilarity. m))
+
 (defn user-recommender
   "Creates a file based user-recommender"
   [model]
@@ -29,8 +37,10 @@
     (GenericUserBasedRecommender. model (NearestNUserNeighborhood. 5 similarity model) similarity)))
 
 (defn item-recommender
-  [model]
-  (GenericItemBasedRecommender. model (LogLikelihoodSimilarity. model)))
+  ([model]
+     (item-recommender model (log-likelihood model)))
+  ([model similarity]
+     (GenericItemBasedRecommender. model similarity)))
 
 (defn similar
   ([^ItemBasedRecommender r i]
@@ -51,9 +61,9 @@
   (.estimatePreference r u i))
 
 (defn evaluate
-  [r model]
+  [r-fn model]
   (let [b (proxy [RecommenderBuilder] []
             (buildRecommender [data-model]
-                              r))
+                              (r-fn data-model)))
         e (AverageAbsoluteDifferenceRecommenderEvaluator.)]
     (.evaluate e b nil model 0.7 1.0)))
